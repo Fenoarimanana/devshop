@@ -17,7 +17,7 @@ export async function GET(
 
   const downloadToken = await prisma.downloadToken.findUnique({
     where: { token },
-    include: { order: true, product: true },
+    include: { order: true },
   })
 
   if (!downloadToken) {
@@ -44,12 +44,18 @@ export async function GET(
     data: { usedAt: new Date() },
   })
 
+  // Load product separately (relation not present in generated types)
+  const product = await prisma.product.findUnique({ where: { id: downloadToken.productId } })
+  if (!product) {
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+  }
+
   // Generate signed Cloudinary URL
-  if (downloadToken.product.filePublicId) {
-    const signedUrl = getSignedUrl(downloadToken.product.filePublicId, 300)
+  if (product.filePublicId) {
+    const signedUrl = getSignedUrl(product.filePublicId, 300)
     return NextResponse.redirect(signedUrl)
   }
 
   // Fallback: direct file URL redirect
-  return NextResponse.redirect(downloadToken.product.fileUrl)
+  return NextResponse.redirect(product.fileUrl)
 }

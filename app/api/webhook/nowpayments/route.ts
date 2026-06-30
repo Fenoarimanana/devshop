@@ -67,15 +67,23 @@ export async function POST(req: NextRequest) {
     try {
       const tokens = await prisma.downloadToken.findMany({
         where: { orderId: order.id },
-        include: { product: true },
       })
       const appUrl = process.env.NEXT_PUBLIC_APP_URL
+
+      // Load products for each token (relation not present in generated types)
+      const tokensWithProducts = await Promise.all(
+        tokens.map(async (t) => ({
+          token: t,
+          product: await prisma.product.findUnique({ where: { id: t.productId } }),
+        }))
+      )
+
       await sendOrderConfirmation(
         order.user.email,
         order.user.name || 'Customer',
         order.id,
-        tokens.map((t) => ({
-          name: order.locale === 'fr' ? t.product.name : t.product.nameEn,
+        tokensWithProducts.map(({ token: t, product }) => ({
+          name: order.locale === 'fr' ? product?.name || '' : product?.nameEn || '',
           downloadUrl: `${appUrl}/api/download/${t.token}`,
         })),
         order.total,

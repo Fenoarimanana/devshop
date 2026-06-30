@@ -1,0 +1,14 @@
+name: Keep DevShop Awake
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping DevShop
+        run: |
+          curl -I -L -m 20 https://devshop-snowy.vercel.app || true

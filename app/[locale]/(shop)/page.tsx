@@ -40,11 +40,13 @@ export default async function HomePage() {
         customerCount={orderCount}
         downloadCount={downloadAgg._sum.downloadCount || 0}
       />
-      <StatsBar
-        productCount={productCount}
-        customerCount={orderCount}
-        downloadCount={downloadAgg._sum.downloadCount || 0}
-      />
+      {orderCount > 0 &&(
+        <StatsBar
+          productCount={productCount}
+          customerCount={orderCount}
+          downloadCount={downloadAgg._sum.downloadCount || 0}
+        />
+      )}
       <FeaturedProducts products={featured} />
       <CategoryGrid categories={categories} />
     </>
